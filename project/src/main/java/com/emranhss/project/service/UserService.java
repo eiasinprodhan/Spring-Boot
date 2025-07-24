@@ -3,10 +3,18 @@ package com.emranhss.project.service;
 import com.emranhss.project.entity.User;
 import com.emranhss.project.repository.IUserRepo;
 import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -16,8 +24,14 @@ public class UserService {
 
     @Autowired
     private EmailService emailService;
+    @Value("src/main/resources/static/images")
+    private String uploadDir;
 
-    public void saveOrUpdate(User user) {
+    public void saveOrUpdate(User user, MultipartFile file) {
+        if(file != null && !file.isEmpty()) {
+            String fileName = saveImage(file, user);
+            user.setPhoto(fileName);
+        }
         userRepo.save(user);
         sendActivationEmail(user);
     }
@@ -73,6 +87,29 @@ public class UserService {
         }catch (MessagingException e){
             throw new RuntimeException(e);
         }
+
+    }
+
+    public String saveImage(MultipartFile file, User user) {
+        Path uploadPath = Paths.get(uploadDir+"/users");
+        if(!Files.exists(uploadPath)){
+            try {
+                Files.createDirectory(uploadPath);
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        String fileName = user.getName() + "_" + UUID.randomUUID().toString();
+
+        Path filePath = uploadPath.resolve(fileName);
+        try {
+            Files.copy(file.getInputStream(), filePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return fileName;
 
     }
 }
