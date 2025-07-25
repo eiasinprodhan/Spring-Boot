@@ -3,7 +3,6 @@ package com.emranhss.project.service;
 import com.emranhss.project.entity.User;
 import com.emranhss.project.repository.IUserRepo;
 import jakarta.mail.MessagingException;
-import jakarta.mail.Multipart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,20 +19,23 @@ import java.util.UUID;
 public class UserService {
 
     @Autowired
-    private IUserRepo  userRepo;
+    private IUserRepo userRepo;
 
     @Autowired
     private EmailService emailService;
+
     @Value("src/main/resources/static/images")
     private String uploadDir;
 
-    public void saveOrUpdate(User user, MultipartFile file) {
-        if(file != null && !file.isEmpty()) {
-            String fileName = saveImage(file, user);
+    public void saveOrUpdate(User user, MultipartFile imagefile) {
+
+        if (imagefile != null && !imagefile.isEmpty()) {
+            String fileName = saveImage(imagefile, user);
             user.setPhoto(fileName);
         }
+
         userRepo.save(user);
-        sendActivationEmail(user);
+        //sendActivationEmail(user);
     }
 
     public List<User> findAll() {
@@ -48,35 +50,36 @@ public class UserService {
         userRepo.delete(user);
     }
 
+
     private void sendActivationEmail(User user) {
-        String subject = "Welcome to Our Service - Confirm Your Registration";
+        String subject = "Welcome to Our Service – Confirm Your Registration";
 
         String mailText = "<!DOCTYPE html>"
                 + "<html>"
                 + "<head>"
                 + "<style>"
-                + "  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; padding: 20px; }"
-                + "  .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }"
-                + "  .header { background: linear-gradient(to right, #00b09b, #96c93d); color: white; padding: 20px; border-radius: 12px 12px 0 0; text-align: center; }"
-                + "  .header h2 { margin: 0; font-size: 24px; }"
-                + "  .content { padding: 30px 20px; font-size: 16px; color: #333; }"
-                + "  .button { display: inline-block; background-color: #00b09b; color: white; padding: 12px 24px; margin-top: 20px; text-decoration: none; border-radius: 6px; font-weight: bold; }"
-                + "  .footer { margin-top: 30px; font-size: 0.85em; color: #999; text-align: center; }"
+                + "  body { font-family: Arial, sans-serif; line-height: 1.6; }"
+                + "  .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; }"
+                + "  .header { background-color: #4CAF50; color: white; padding: 10px; text-align: center; border-radius: 10px 10px 0 0; }"
+                + "  .content { padding: 20px; }"
+                + "  .footer { font-size: 0.9em; color: #777; margin-top: 20px; text-align: center; }"
                 + "</style>"
                 + "</head>"
                 + "<body>"
                 + "  <div class='container'>"
                 + "    <div class='header'>"
-                + "      <h2>Welcome, " + user.getName() + "!</h2>"
+                + "      <h2>Welcome to Our Platform</h2>"
                 + "    </div>"
                 + "    <div class='content'>"
-                + "      <p>Thanks for signing up with <strong>YourCompany</strong>!</p>"
-                + "      <p>If you didn’t request this email, please ignore it. This link will expire in 24 hours for your security.</p>"
-                + "      <p>Need help? Just reply to this email—we’re always happy to assist!</p>"
-                + "      <p>Cheers,<br>Black Spider Support Team</p>"
+                + "      <p>Dear " + user.getName() + ",</p>"
+                + "      <p>Thank you for registering with us. We are excited to have you on board!</p>"
+                + "      <p>Please confirm your email address to activate your account and get started.</p>"
+                + "      <p>If you have any questions or need help, feel free to reach out to our support team.</p>"
+                + "      <br>"
+                + "      <p>Best regards,<br>The Support Team</p>"
                 + "    </div>"
                 + "    <div class='footer'>"
-                + "      &copy; " + java.time.Year.now() + " Black Spider. All rights reserved."
+                + "      &copy; " + java.time.Year.now() + " YourCompany. All rights reserved."
                 + "    </div>"
                 + "  </div>"
                 + "</body>"
@@ -84,32 +87,31 @@ public class UserService {
 
         try {
             emailService.sendSimpleMail(user.getEmail(), subject, mailText);
-        }catch (MessagingException e){
-            throw new RuntimeException(e);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send activation email", e);
         }
-
     }
 
     public String saveImage(MultipartFile file, User user) {
-        Path uploadPath = Paths.get(uploadDir+"/users");
-        if(!Files.exists(uploadPath)){
+        Path uploadPath = Paths.get(uploadDir + "/users");
+        if (!Files.exists(uploadPath)) {
             try {
-                Files.createDirectory(uploadPath);
-
+                Files.createDirectories(uploadPath);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        String fileName = user.getName() + "_" + UUID.randomUUID().toString();
+        String fileName = user.getName() + "_" + UUID.randomUUID();
 
-        Path filePath = uploadPath.resolve(fileName);
+
         try {
+            Path filePath = uploadPath.resolve(fileName);
             Files.copy(file.getInputStream(), filePath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return fileName;
 
+        return fileName;
     }
 }
