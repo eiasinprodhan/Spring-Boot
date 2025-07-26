@@ -1,9 +1,5 @@
 package com.emranhss.project.dto;
 
-import com.emranhss.project.entity.District;
-
-import java.util.List;
-
 public class PoliceStationResponseDTO {
 
     private int id;
