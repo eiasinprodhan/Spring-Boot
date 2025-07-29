@@ -25,11 +25,11 @@
         </thead>
         <tbody>
         <tr th:each="e : ${employees}">
-            <td th:text="${e.id}"></td>
+            <td class="text-center" th:text="${e.id}"></td>
             <td th:text="${e.name}"></td>
             <td th:text="${e.designation}"></td>
-            <td th:text="${e.salary}"></td>
-            <td>
+            <td class="text-end" th:text="${e.salary}"></td>
+            <td class="text-center">
                 <a th:href="@{'/edit/' + ${e.id}}" class="btn btn-warning">Edit</a>
                 <a th:href="@{'/delete/' + ${e.id}}" class="btn btn-danger">Delete</a>
             </td>
