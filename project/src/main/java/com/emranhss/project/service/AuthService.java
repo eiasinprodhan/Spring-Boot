@@ -208,7 +208,7 @@ public class AuthService {
         saveUserToken(jwt, savedUser);
 
         // Send Activation Email
-        sendActivationEmail(savedUser);
+        // sendActivationEmail(savedUser);
     }
 
 
